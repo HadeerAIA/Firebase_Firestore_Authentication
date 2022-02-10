@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment_2</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+        integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous" />
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Course Database</a>
+        </div>
+    </nav>
+    <br>
+    <br>
+    <div class="container-fluid" style="width: 70%;">
+        <div class="form-group row">
+            <label for="ID" class="col-sm-2 col-form-label">ID</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="ID" placeholder="ID" readonly>
+            </div>
+        </div>
+        <br>
+        <div class="form-group row">
+            <label for="Name" class="col-sm-2 col-form-label">Name</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="Name" placeholder="Name">
+            </div>
+        </div>
+        <br>
+        <div class="form-group row">
+            <label for="Final_Mark" class="col-sm-2 col-form-label">Final Mark</label>
+            <div class="col-sm-10">
+                <input type="number" class="form-control" id="Final_Mark" placeholder="Final_Mark">
+            </div>
+        </div>
+        <br>
+        <div class="form-group row">
+            <label for="Hours" class="col-sm-2 col-form-label">Hours</label>
+            <div class="col-sm-10">
+                <input type="number" class="form-control" id="Hours" placeholder="Hours">
+            </div>
+        </div>
+        <br>
+        <div class="form-group row">
+            <label for="Is_Available" class="col-sm-2 col-form-label">Available</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="Is_Available" placeholder="Is_Available">
+            </div>
+        </div>
+        <br>
+        <button type="button" class="btn btn-success" onclick="Save()">Save</button>
+        <hr>
+        <table id="CourseData" class="table table-dark table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Final Mark</th>
+                    <th>Hours</th>
+                    <th>Is_Available</th>
+                    <th>Update/delete</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.6/firebase-app.js";
+  import { 
+    getFirestore,addDoc,collection,onSnapshot ,getDoc,doc,updateDoc,deleteDoc,query,where,getDocs,orderBy
+   } from "https://www.gstatic.com/firebasejs/9.6.6/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD6llsNS4h3UfAD-8CNqDmqmbSl1Qw9GsI",
+    authDomain: "lab2-8aacc.firebaseapp.com",
+    projectId: "lab2-8aacc",
+    storageBucket: "lab2-8aacc.appspot.com",
+    messagingSenderId: "933618285889",
+    appId: "1:933618285889:web:31a55deeeb329dc9d5f5c0",
+    measurementId: "G-XCQQNWRK22"
+  };
+  const app = initializeApp(firebaseConfig);
+  const firestore = getFirestore(app);
+
+//listen on any change
+      onSnapshot(collection(firestore,'Course'),(snapshot)=>{
+        var tableBody = document.querySelector("#CourseData>tbody");
+        tableBody.innerHTML = "";
+        snapshot.forEach((doc)=>{
+            ShowData(doc);
+        })
+      })
+
+        function ShowData(course)
+        {
+            var courseData=course.data();
+            var tableBody = document.querySelector("#CourseData>tbody");
+            var row = `
+            <tr>
+                    <td>${course.id}</td>
+                    <td>${courseData.Name}</td>
+                    <td>${courseData.Final_Mark}</td>
+                    <td>${courseData.Hours}</td>
+                    <td>${courseData.Is_Available}</td>
+                                <td>
+                <button type="button" class="btn btn-warning" onclick="fillcourse('${course.id}')"><i class="fas fa-edit"></i></button>
+                <button type="button" class="btn btn-danger" onclick="deletecourse('${course.id}')"><i class="fas fa-trash-alt"></i></button>
+                <button type="button" class="btn btn-primary" onclick="TestQuery('${course.id}')"><i class="fas fa-trash-alt"></i></button>
+
+                               </td>
+            </tr>
+            `
+            tableBody.innerHTML+=row;
+        }
+
+        // save data
+        window.Save=Save
+        async function Save()
+        {
+            var ID = document.getElementById("ID").value;
+            var Name = document.getElementById("Name").value;
+            var Final_Mark = parseInt(document.getElementById("Final_Mark").value);
+            var Hours =parseInt( document.getElementById("Hours").value);
+            var Is_Available = document.getElementById("Is_Available").value;
+            var data={
+                Name:Name,
+                Final_Mark:Final_Mark,
+                Hours:Hours,
+                Is_Available:Is_Available
+            }
+
+            if(ID=="") // addDoc
+            {
+            const course=await addDoc(collection(firestore,'Course'),data);
+            }
+            else //update
+            {
+              updateDoc(doc(firestore,'Course',ID),data);
+            }
+            Clear();  
+        }
+        function Clear()
+        {
+            document.getElementById("ID").value="";
+            document.getElementById("Name").value="";
+            document.getElementById("Final_Mark").value="";
+            document.getElementById("Hours").value="";
+            document.getElementById("Is_Available").value="";
+        }
+
+        //update data
+       window.fillcourse=fillcourse
+       async function fillcourse(courseID)
+        {
+        // getDoc
+           const courseDataDoc=await getDoc(doc(firestore,'Course',courseID));
+           var course=courseDataDoc.data();
+           console.log(course);
+           document.getElementById("ID").value=courseID;
+           document.getElementById("Name").value=course.Name;
+           document.getElementById("Final_Mark").value=course.Final_Mark;
+           document.getElementById("Hours").value=course.Hours;
+           document.getElementById("Is_Available").value=course.Is_Available;
+        }
+
+        //delete 
+        window.deletecourse=deletecourse
+        function deletecourse(courseID)
+        {
+            deleteDoc(doc(firestore,'Course',courseID));
+        }
+
+        window.TestQuery=TestQuery
+       async function TestQuery()
+        {
+             var q=query(collection(firestore,'Course'),
+                 where('Is_Available','==','true'),
+                 where('Final_Mark','>=',80),
+                 orderBy('Final_Mark')
+            );
+            var queryResult=await getDocs(q)
+            queryResult.forEach((doc)=>{
+                console.log(doc.data());
+            })
+        }
+
+      </script>
+</body>
+
+</html>

@@ -1,0 +1,9 @@
+body{
+    height: 100%;
+    background-color: #F4F2F0;
+}
+body{
+    background-image: url("../Images/background.jpg");
+    background-size: cover;
+    height: 100%;
+}
